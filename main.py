@@ -1,9 +1,10 @@
+from sys import argv
 from graph import Graph
 from simplex import solve
 
 
 if __name__ == "__main__":
-    graph = Graph("data/graph.csv")
+    graph = Graph(argv[1])
 
     # Set initial feasible solution
     graph.base_size = 3
