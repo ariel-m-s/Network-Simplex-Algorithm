@@ -27,27 +27,26 @@ class Graph:
 
     @staticmethod
     def _get_line_data(file: TextIO) -> Iterable:
-        return map(lambda x: float(x) if "." in x else int(x),
-                   file.readline().strip().split(","))
+        return file.readline().strip().split(",")
 
     def _load(self, path: int):
         with open(file=path, mode="r") as file:
             try:
-                N, A = map(int, Graph._get_line_data(file))
+                N, A, *_ = Graph._get_line_data(file)
             except (TypeError, ValueError):
                 raise DimensionsCorruptError()
 
             try:
-                for _ in range(N):
-                    node_data = Graph._get_line_data(file)
-                    self._add_node(*node_data)
+                for _ in range(int(N)):
+                    id_, supply, *_ = Graph._get_line_data(file)
+                    self._add_node(int(id_), int(supply))
             except (TypeError, ValueError):
                 raise NodesCorruptError()
 
             try:
-                for _ in range(A):
-                    edge_data = Graph._get_line_data(file)
-                    self._add_edge(*edge_data)
+                for _ in range(int(A)):
+                    from_, to_, cost, *_ = Graph._get_line_data(file)
+                    self._add_edge(int(from_), int(to_), float(cost))
             except (TypeError, ValueError):
                 raise EdgesCorruptError()
 
