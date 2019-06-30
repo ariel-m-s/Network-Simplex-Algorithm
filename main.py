@@ -8,9 +8,9 @@ if __name__ == "__main__":
 
     # Set initial feasible solution
     graph.base_size = 3
-    graph.set_flow(1, 2, 4)
-    graph.set_flow(2, 3, 6)
-    graph.set_flow(3, 4, 5)
+    graph.set_flow(from_id=1, to_id=2, value=4)
+    graph.set_flow(from_id=2, to_id=3, value=6)
+    graph.set_flow(from_id=3, to_id=4, value=5)
 
     solve(graph)
 
