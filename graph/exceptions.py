@@ -56,3 +56,9 @@ class NodeSupplyNotFulfilledError(GraphPropertyError):
     def __init__(self, node_id: int, *args, **kwargs):
         super().__init__(f"supply/demand at node '{node_id}' not fulfilled.",
                          *args, **kwargs)
+
+
+class NegativeCycleError(GraphPropertyError):
+    def __init__(self, *args, **kwargs):
+        super().__init__(f"the problem is unbounded.",
+                         *args, **kwargs)

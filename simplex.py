@@ -1,6 +1,7 @@
 from functools import reduce
 from enum import Enum
-from graph.exceptions import (SuppliesNotBalancedError, WrongBaseSizeError)
+from graph.exceptions import (SuppliesNotBalancedError, WrongBaseSizeError,
+                              NegativeCycleError)
 
 DeltaSign = Enum('Sign', ['PLUS', 'MINUS'])
 
@@ -49,20 +50,27 @@ def get_reduced_costs(graph: 'Graph') -> dict:
 
 
 def get_cycle(graph: 'Graph', target: int, discovered: list) -> list:
-    if discovered[-1][0] == target:
+    print(target)
+    print(discovered)
+
+    if len(discovered) > 2 and discovered[-1][0] == target:
         return discovered
 
     node = graph.nodes[discovered[-1][0]]
 
     for other_id, edge in node.in_.items():
-        if edge["flow"] is not None and other_id not in discovered:
+        if (edge["flow"] is not None
+                and other_id not in map(lambda x: x[0], discovered)):
+
             cycle = get_cycle(graph, target,
                               discovered + [(other_id, DeltaSign.MINUS)])
             if cycle:
                 return cycle
 
     for other_id, edge in node.out_.items():
-        if edge["flow"] is not None and other_id not in discovered:
+        if (edge["flow"] is not None
+                and other_id not in map(lambda x: x[0], discovered)):
+
             cycle = get_cycle(graph, target,
                               discovered + [(other_id, DeltaSign.PLUS)])
             if cycle:
@@ -100,13 +108,13 @@ def update_flow(graph: 'Graph', cycle: list):
         prev_id, _ = cycle[i - 1]
         this_node = graph.nodes[this_id]
 
-        if (delta_sign is DeltaSign.PLUS and
-           this_node.in_[prev_id]["flow"] == 0):
+        if (delta_sign is DeltaSign.PLUS
+                and this_node.in_[prev_id]["flow"] == 0):
             graph.set_flow(prev_id, this_id, None)
             break
 
-        if (delta_sign is DeltaSign.MINUS and
-           this_node.out_[prev_id]["flow"] == 0):
+        if (delta_sign is DeltaSign.MINUS
+                and this_node.out_[prev_id]["flow"] == 0):
             graph.set_flow(this_id, prev_id, None)
             break
 
@@ -127,4 +135,21 @@ def solve(graph: 'Graph'):
                             key=lambda x: reduced_costs[x])
         cycle = get_cycle(graph, entering_edge[0],
                           [(entering_edge[1], DeltaSign.PLUS)])
+
+        for i in range(len(cycle)):
+
+            this_id, delta_sign = cycle[i]
+            prev_id, _ = cycle[i - 1]
+            this_node = graph.nodes[this_id]
+            cost = 0
+
+            if delta_sign is DeltaSign.PLUS:
+                cost += this_node.in_[prev_id]["cost"]
+
+            elif delta_sign is DeltaSign.MINUS:
+                cost += this_node.out_[prev_id]["cost"]
+
+        if cost < 0:
+            raise NegativeCycleError()
+
         update_flow(graph, cycle)
